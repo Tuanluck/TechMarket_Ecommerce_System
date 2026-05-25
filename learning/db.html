@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Database Design - E-Commerce System</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; }
+        h2 { color: #16a085; margin-top: 30px; }
+        h3 { color: #2980b9; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; color: #2c3e50; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        ul { margin-top: 5px; padding-left: 20px; }
+        li { margin-bottom: 5px; }
+        .note { background-color: #fdf2e9; border-left: 4px solid #e67e22; padding: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>DATABASE DESIGN - E-COMMERCE SYSTEM</h1>
+    <p><strong>Mục tiêu:</strong> Thiết kế Database cho đồ án Website bán đồ điện tử sử dụng MongoDB + Mongoose.</p>
+
+    <hr>
+
+    <h2>Collection: users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>fullName</td><td>String</td><td>Yes</td><td>-</td><td>Họ tên người dùng</td></tr>
+            <tr><td>email</td><td>String</td><td>Yes</td><td>Unique</td><td>Email đăng nhập</td></tr>
+            <tr><td>password</td><td>String</td><td>Yes</td><td>Hashed</td><td>Mật khẩu đã mã hóa</td></tr>
+            <tr><td>role</td><td>Enum</td><td>No</td><td>customer</td><td>customer/staff/admin</td></tr>
+            <tr><td>phone</td><td>String</td><td>No</td><td>-</td><td>Số điện thoại</td></tr>
+            <tr><td>avatar</td><td>String</td><td>No</td><td>-</td><td>Ảnh đại diện</td></tr>
+            <tr><td>isActive</td><td>Boolean</td><td>No</td><td>true</td><td>Trạng thái tài khoản</td></tr>
+            <tr><td>loyaltyPoints</td><td>Number</td><td>No</td><td>0</td><td>Điểm tích lũy</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: categories</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>name</td><td>String</td><td>Yes</td><td>-</td><td>Tên danh mục</td></tr>
+            <tr><td>slug</td><td>String</td><td>Yes</td><td>Unique</td><td>Slug URL</td></tr>
+            <tr><td>image</td><td>String</td><td>No</td><td>-</td><td>Ảnh danh mục</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: brands</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>name</td><td>String</td><td>Yes</td><td>-</td><td>Tên thương hiệu</td></tr>
+            <tr><td>slug</td><td>String</td><td>Yes</td><td>Unique</td><td>Slug URL</td></tr>
+            <tr><td>image</td><td>String</td><td>No</td><td>-</td><td>Ảnh thương hiệu</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: products</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>name</td><td>String</td><td>Yes</td><td>-</td><td>Tên sản phẩm</td></tr>
+            <tr><td>slug</td><td>String</td><td>Yes</td><td>Unique</td><td>Slug URL</td></tr>
+            <tr><td>categoryId</td><td>ObjectId</td><td>Yes</td><td>Ref categories</td><td>Danh mục</td></tr>
+            <tr><td>brandId</td><td>ObjectId</td><td>Yes</td><td>Ref brands</td><td>Thương hiệu</td></tr>
+            <tr><td>thumbnail</td><td>String</td><td>Yes</td><td>-</td><td>Ảnh đại diện</td></tr>
+            <tr><td>images</td><td>Array&lt;String&gt;</td><td>No</td><td>[]</td><td>Danh sách ảnh</td></tr>
+            <tr><td>basePrice</td><td>Number</td><td>Yes</td><td>-</td><td>Giá gốc</td></tr>
+            <tr><td>stock</td><td>Number</td><td>No</td><td>0</td><td>Tồn kho</td></tr>
+            <tr><td>specs</td><td>Object</td><td>No</td><td>{}</td><td>Thông số kỹ thuật</td></tr>
+            <tr><td>variants</td><td>Array&lt;Object&gt;</td><td>No</td><td>[]</td><td>Biến thể</td></tr>
+            <tr><td>ratingAvg</td><td>Number</td><td>No</td><td>0</td><td>Đánh giá trung bình</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: orders</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>orderCode</td><td>String</td><td>Yes</td><td>Unique</td><td>Mã đơn hàng</td></tr>
+            <tr><td>userId</td><td>ObjectId</td><td>Yes</td><td>Ref users</td><td>Người mua</td></tr>
+            <tr><td>totalAmount</td><td>Number</td><td>Yes</td><td>0</td><td>Tổng tiền</td></tr>
+            <tr><td>discountAmount</td><td>Number</td><td>No</td><td>0</td><td>Tiền giảm</td></tr>
+            <tr><td>finalAmount</td><td>Number</td><td>Yes</td><td>0</td><td>Tiền thanh toán</td></tr>
+            <tr><td>paymentMethod</td><td>Enum</td><td>No</td><td>cod</td><td>cod/vnpay/momo</td></tr>
+            <tr><td>paymentStatus</td><td>Enum</td><td>No</td><td>unpaid</td><td>unpaid/paid/refunded</td></tr>
+            <tr><td>orderStatus</td><td>Enum</td><td>No</td><td>pending</td><td>Trạng thái đơn</td></tr>
+            <tr><td>shippingAddress</td><td>Object</td><td>Yes</td><td>-</td><td>Địa chỉ giao hàng</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: order_items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>orderId</td><td>ObjectId</td><td>Yes</td><td>Ref orders</td><td>Mã đơn hàng</td></tr>
+            <tr><td>productId</td><td>ObjectId</td><td>Yes</td><td>Ref products</td><td>Sản phẩm</td></tr>
+            <tr><td>variantName</td><td>String</td><td>No</td><td>-</td><td>Biến thể</td></tr>
+            <tr><td>quantity</td><td>Number</td><td>Yes</td><td>1</td><td>Số lượng</td></tr>
+            <tr><td>priceAtBuy</td><td>Number</td><td>Yes</td><td>-</td><td>Giá snapshot</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: flash_sales</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>name</td><td>String</td><td>Yes</td><td>-</td><td>Tên chiến dịch</td></tr>
+            <tr><td>startTime</td><td>Date</td><td>Yes</td><td>-</td><td>Thời gian bắt đầu</td></tr>
+            <tr><td>endTime</td><td>Date</td><td>Yes</td><td>-</td><td>Thời gian kết thúc</td></tr>
+            <tr><td>status</td><td>Enum</td><td>No</td><td>upcoming</td><td>upcoming/active/ended</td></tr>
+            <tr><td>products</td><td>Array&lt;Object&gt;</td><td>Yes</td><td>-</td><td>Danh sách sản phẩm</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: vouchers</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>code</td><td>String</td><td>Yes</td><td>Unique</td><td>Mã giảm giá</td></tr>
+            <tr><td>discountType</td><td>Enum</td><td>Yes</td><td>-</td><td>percent/fixed</td></tr>
+            <tr><td>discountValue</td><td>Number</td><td>Yes</td><td>-</td><td>Giá trị giảm</td></tr>
+            <tr><td>minOrderValue</td><td>Number</td><td>No</td><td>0</td><td>Đơn tối thiểu</td></tr>
+            <tr><td>maxDiscount</td><td>Number</td><td>No</td><td>-</td><td>Giảm tối đa</td></tr>
+            <tr><td>usageLimit</td><td>Number</td><td>No</td><td>-</td><td>Số lượt dùng</td></tr>
+            <tr><td>usedCount</td><td>Number</td><td>No</td><td>0</td><td>Đã sử dụng</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: reviews</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>userId</td><td>ObjectId</td><td>Yes</td><td>Ref users</td><td>Người đánh giá</td></tr>
+            <tr><td>productId</td><td>ObjectId</td><td>Yes</td><td>Ref products</td><td>Sản phẩm</td></tr>
+            <tr><td>orderId</td><td>ObjectId</td><td>Yes</td><td>Ref orders</td><td>Xác thực mua</td></tr>
+            <tr><td>rating</td><td>Number</td><td>Yes</td><td>1-5</td><td>Điểm đánh giá</td></tr>
+            <tr><td>comment</td><td>String</td><td>No</td><td>-</td><td>Nội dung đánh giá</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: wishlists</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>userId</td><td>ObjectId</td><td>Yes</td><td>Ref users</td><td>Người dùng</td></tr>
+            <tr><td>productIds</td><td>Array&lt;ObjectId&gt;</td><td>No</td><td>[]</td><td>Danh sách yêu thích</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <h2>Collection: payment_webhooks_raw</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Required</th>
+                <th>Default / Rule</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>orderId</td><td>ObjectId</td><td>Yes</td><td>Ref orders</td><td>Đơn hàng</td></tr>
+            <tr><td>transactionId</td><td>String</td><td>Yes</td><td>Unique</td><td>Mã giao dịch</td></tr>
+            <tr><td>payload</td><td>Object</td><td>Yes</td><td>-</td><td>JSON webhook</td></tr>
+            <tr><td>status</td><td>Enum</td><td>No</td><td>processed</td><td>processed/failed/ignored</td></tr>
+        </tbody>
+    </table>
+    <div class="note">Mặc định có thêm: <code>createdAt</code>, <code>updatedAt</code>, <code>isDeleted</code>.</div>
+
+    <hr>
+
+    <h2>Indexing Strategy</h2>
+    <ul>
+        <li><code>products.slug</code> (unique index)</li>
+        <li><code>products.categoryId</code> + <code>basePrice</code></li>
+        <li><code>orders.userId</code> + <code>createdAt</code></li>
+        <li><code>orders.orderCode</code> (unique index)</li>
+        <li><code>flash_sales.status</code> + <code>startTime</code> + <code>endTime</code></li>
+    </ul>
+
+    <h2>Critical Notes</h2>
+    <ul>
+        <li>Flash Sale phải dùng Atomic Update.</li>
+        <li>Dùng Cronjob dọn đơn pending.</li>
+        <li>Dùng Idempotency Key cho webhook.</li>
+        <li>MongoDB Replica Set để hỗ trợ Transaction.</li>
+    </ul>
+
+</body>
+</html>
