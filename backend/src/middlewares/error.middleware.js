@@ -6,7 +6,6 @@ const handleCastErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
-// Xử lý lỗi trùng lặp dữ liệu (Duplicate Fields) từ MongoDB
 const handleDuplicateFieldsDB = (err) => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   const message = `Giá trị dữ liệu đã tồn tại: ${value}. Vui lòng nhập giá trị khác!`;
@@ -30,9 +29,8 @@ const sendErrorDev = (err, req, res) => {
   });
 };
 
-// Gửi thông báo lỗi tối giản ở môi trường Production để bảo mật thông tin
+
 const sendErrorProd = (err, req, res) => {
-  // A. Lỗi nghiệp vụ đã được định nghĩa trước (Operational Error): Trả thông tin chi tiết cho khách hàng
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
@@ -40,7 +38,6 @@ const sendErrorProd = (err, req, res) => {
     });
   }
 
-  // B. Lỗi hệ thống hoặc lỗi code chưa biết: Log lỗi chi tiết lên server và gửi thông báo chung chung
   console.error('💥 ERROR 💥', err);
   return res.status(500).json({
     status: 'error',

@@ -28,7 +28,6 @@ const BrandSchema = new mongoose.Schema(
   }
 );
 
-// Query middleware to filter out deleted brands by default (Soft Delete)
 BrandSchema.pre(/^find/, function () {
   this.find({ isDeleted: { $ne: true } });
 });
