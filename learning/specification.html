@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đặc tả Hệ thống E-Commerce</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; color: #333; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; text-transform: uppercase; }
+        h2 { color: #16a085; margin-top: 30px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        h3 { color: #2980b9; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; color: #2c3e50; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        ul { margin-top: 5px; padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        pre { background-color: #f8f9fa; border: 1px solid #eaeded; border-left: 4px solid #27ae60; padding: 15px; overflow-x: auto; font-family: "Courier New", Courier, monospace; }
+        .highlight { font-weight: bold; color: #c0392b; }
+        .note { background-color: #fdf2e9; border-left: 4px solid #e67e22; padding: 10px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>ĐẶC TẢ HỆ THỐNG E-COMMERCE</h1>
+
+    <h2>1. GIỚI THIỆU ĐỀ TÀI</h2>
+    <ul>
+        <li><strong>Mục tiêu hệ thống:</strong> Xây dựng một nền tảng thương mại điện tử chuyên cung cấp các thiết bị điện tử (điện thoại, laptop, phụ kiện) với trải nghiệm mua sắm mượt mà, tốc độ phản hồi cao và có khả năng chịu tải tốt trong các sự kiện siêu sale.</li>
+        <li><strong>Đối tượng sử dụng:</strong>
+            <ul>
+                <li>Người tiêu dùng cá nhân (B2C) có nhu cầu mua sắm thiết bị công nghệ.</li>
+                <li>Đội ngũ vận hành (Admin/Staff) quản lý kho hàng, đơn hàng và chiến dịch marketing.</li>
+            </ul>
+        </li>
+        <li><strong>Bài toán thực tế giải quyết:</strong> Giải quyết tình trạng nghẽn cổ chai (bottleneck) khi có lượng lớn truy cập đồng thời, ngăn chặn việc bán vượt quá số lượng tồn kho (overselling) và tối ưu hóa quy trình quản lý đơn hàng.</li>
+        <li><strong>Phạm vi hệ thống:</strong> Quản lý toàn bộ vòng đời của sản phẩm từ khi nhập kho đến khi giao tới tay khách hàng, tập trung vào nghiệp vụ giỏ hàng, thanh toán trực tuyến và chiến dịch Flash Sale.</li>
+        <li><strong>Giá trị mang lại:</strong> Một hệ thống tiệm cận production, có thể dễ dàng mở rộng, tích hợp các cổng thanh toán nội địa (như VNPay, MoMo) và là minh chứng rõ ràng cho tư duy thiết kế hệ thống lớn.</li>
+    </ul>
+
+    <h2>2. PHÂN TÍCH NGHIỆP VỤ (BUSINESS LOGIC)</h2>
+    
+    <h3>N nghiệp vụ Khách hàng (Customer)</h3>
+    <ul>
+        <li><strong>Xác thực:</strong> Đăng ký, Đăng nhập (Local &amp; OAuth2 Google), Quên mật khẩu (gửi OTP qua Email).</li>
+        <li><strong>Mua sắm:</strong>
+            <ul>
+                <li>Tìm kiếm realtime (debounce), Lọc sản phẩm (theo giá, thương hiệu, đánh giá, thông số kỹ thuật).</li>
+                <li>Thêm vào giỏ hàng (lưu trữ đồng bộ trên DB thay vì chỉ ở LocalStorage để cross-device).</li>
+                <li>Thanh toán (Checkout): Tính phí ship, áp dụng Voucher, chọn phương thức thanh toán.</li>
+            </ul>
+        </li>
+        <li><strong>Hậu mãi &amp; Tương tác:</strong>
+            <ul>
+                <li>Theo dõi trạng thái đơn hàng (Pending &rarr; Processing &rarr; Shipped &rarr; Delivered).</li>
+                <li>Đánh giá sản phẩm (chỉ cho phép khi đơn hàng đã hoàn thành).</li>
+                <li>Wishlist (Lưu sản phẩm yêu thích).</li>
+                <li>Nhận thông báo (Realtime qua Socket.io).</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>N nghiệp vụ Quản trị (Admin)</h3>
+    <ul>
+        <li><strong>Quản lý Catalog:</strong> Thêm/sửa/xóa sản phẩm, danh mục, thương hiệu. Quản lý các biến thể sản phẩm (Màu sắc, Dung lượng RAM/ROM).</li>
+        <li><strong>Quản lý Đơn hàng &amp; Tồn kho:</strong> Cập nhật trạng thái đơn hàng, theo dõi lịch sử xuất/nhập kho.</li>
+        <li><strong>Marketing:</strong> Tạo mã giảm giá (Voucher) với các rule phức tạp, thiết lập lịch chạy Flash Sale.</li>
+        <li><strong>Thống kê (Dashboard):</strong> Biểu đồ doanh thu theo tháng/tuần, Top sản phẩm bán chạy, Tỷ lệ chuyển đổi (Conversion Rate).</li>
+    </ul>
+
+    <h2>3. PHÂN TÍCH ROLE &amp; PHÂN QUYỀN</h2>
+    <p>Thiết kế RBAC (Role-Based Access Control) với 4 cấp độ:</p>
+    <ul>
+        <li><strong>Guest (Khách vãng lai):</strong> Chỉ được xem sản phẩm, đọc đánh giá, thêm vào giỏ hàng (lưu LocalStorage). <span class="highlight">Bị chặn ở bước Checkout.</span></li>
+        <li><strong>Customer (Khách hàng):</strong> Có đầy đủ quyền mua sắm, quản lý profile, lịch sử đơn hàng, sử dụng voucher.</li>
+        <li><strong>Staff (Nhân viên):</strong> Truy cập CMS Admin. Được quyền xử lý đơn hàng, cập nhật trạng thái kho, phản hồi đánh giá. <span class="highlight">Không được xem doanh thu tổng hay cấp quyền tài khoản.</span></li>
+        <li><strong>Admin (Quản trị viên):</strong> Toàn quyền hệ thống. Quản lý phân quyền Staff, xem Dashboard doanh thu, can thiệp vào mọi data.</li>
+    </ul>
+
+    <h2>4. DATABASE DESIGN (MongoDB)</h2>
+    <p><strong>Tư duy thiết kế:</strong> Tối ưu cho thao tác Đọc (Read) vì E-commerce có tỷ lệ Read/Write thường là 10:1.</p>
+    
+    <h3>Các Collection chính &amp; Cấu trúc</h3>
+    <ul>
+        <li><strong>users:</strong> _id, name, email, password (hashed), role, status (active/banned).</li>
+        <li><strong>products:</strong> _id, name, slug, description, price, discount_price, stock, category_id (Ref), brand_id (Ref), variants (Array of objects: màu sắc, dung lượng), images (Array), ratings_average.</li>
+        <li><strong>categories / brands:</strong> _id, name, slug, image.</li>
+        <li><strong>carts:</strong> _id, user_id (Ref), items (Array: product_id, variant, quantity). <span class="note">Lý do: Tách riêng thay vì nhúng vào user để tránh document quá lớn khi khách hàng thêm nhiều đồ.</span></li>
+        <li><strong>orders:</strong> _id, user_id, total_amount, shipping_fee, discount_amount, final_amount, payment_method, status (Enum), shipping_address (Object).</li>
+        <li><strong>order_items:</strong> _id, order_id (Ref), product_id (Ref), price_at_buy, quantity. <span class="note">Lý do: Tách riêng giúp dễ dàng query thống kê sản phẩm bán chạy.</span></li>
+        <li><strong>flash_sales:</strong> _id, name, start_time, end_time, products (Array: product_id, promo_price, sold_quantity, max_quantity), status.</li>
+        <li><strong>vouchers:</strong> _id, code, discount_type (percent/fixed), value, min_order_value, max_discount, start_date, end_date, usage_limit, used_count.</li>
+    </ul>
+
+    <h3>Database Best Practices</h3>
+    <ul>
+        <li><strong>Soft Delete:</strong> Thêm trường <code>is_deleted: boolean</code> và <code>deleted_at</code> vào bảng products/users. Tuyệt đối không xóa vật lý để giữ toàn vẹn dữ liệu cho đơn hàng cũ.</li>
+        <li><strong>Indexing:</strong>
+            <ul>
+                <li><code>products</code>: Index slug (Unique) cho SEO URL, Text Index cho name để tối ưu thanh tìm kiếm.</li>
+                <li><code>orders</code>: Index user_id và created_at để truy xuất lịch sử nhanh.</li>
+            </ul>
+        </li>
+        <li><strong>Timestamps:</strong> Tích hợp sẵn <code>createdAt</code> và <code>updatedAt</code> của Mongoose cho mọi collection.</li>
+    </ul>
+
+    <h2>5. THIẾT KẾ KIẾN TRÚC BACKEND</h2>
+    <p>Sử dụng kiến trúc Layered Architecture chuẩn mực để dễ maintain và test:</p>
+    <ul>
+        <li><strong>routes/:</strong> Chứa định tuyến API, gắn các middleware authentication và validation.</li>
+        <li><strong>controllers/:</strong> Tiếp nhận request, gọi service xử lý, trả về response. <span class="highlight">Tuyệt đối không chứa logic nghiệp vụ phức tạp ở đây.</span></li>
+        <li><strong>services/:</strong> Nơi chứa toàn bộ Business Logic (tính toán giá, xử lý giỏ hàng, áp mã giảm giá). Trái tim của backend.</li>
+        <li><strong>models/:</strong> Schema Mongoose định nghĩa cấu trúc DB.</li>
+        <li><strong>middlewares/:</strong>
+            <ul>
+                <li><code>auth.middleware</code>: Xác thực JWT, phân quyền Role.</li>
+                <li><code>error.middleware</code>: Global Error Handler bắt mọi exception.</li>
+            </ul>
+        </li>
+        <li><strong>validations/:</strong> Joi hoặc Zod để validate input req.body trước khi vào controller.</li>
+    </ul>
+
+    <h3>Flow Request Lifecycle:</h3>
+    <p>Client Request &rarr; Router &rarr; Auth Middleware &rarr; Validation Middleware &rarr; Controller &rarr; Service &rarr; Database &rarr; Service &rarr; Controller &rarr; Client Response.</p>
+
+    <h3>Chuẩn Response Format (JSend):</h3>
+<pre>{
+  "status": "success",
+  "message": "Lấy danh sách sản phẩm thành công",
+  "data": { ... },
+  "metadata": { "page": 1, "total": 50 }
+}</pre>
+
+    <h2>6. API DESIGN (RESTful)</h2>
+    <p>Một số API cốt lõi (sử dụng danh từ số nhiều, method chuẩn):</p>
+    <table>
+        <thead>
+            <tr>
+                <th>HTTP Method</th>
+                <th>Endpoint</th>
+                <th>Authorization</th>
+                <th>Mục đích</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>POST</strong></td>
+                <td><code>/api/v1/auth/login</code></td>
+                <td>Public</td>
+                <td>Xác thực người dùng, trả về Access/Refresh Token</td>
+            </tr>
+            <tr>
+                <td><strong>GET</strong></td>
+                <td><code>/api/v1/products</code></td>
+                <td>Public</td>
+                <td>Lấy danh sách SP (hỗ trợ query ?sort=-price&amp;category=laptop)</td>
+            </tr>
+            <tr>
+                <td><strong>GET</strong></td>
+                <td><code>/api/v1/products/:slug</code></td>
+                <td>Public</td>
+                <td>Lấy chi tiết sản phẩm</td>
+            </tr>
+            <tr>
+                <td><strong>POST</strong></td>
+                <td><code>/api/v1/carts</code></td>
+                <td>Customer</td>
+                <td>Thêm sản phẩm vào giỏ hàng</td>
+            </tr>
+            <tr>
+                <td><strong>POST</strong></td>
+                <td><code>/api/v1/orders/checkout</code></td>
+                <td>Customer</td>
+                <td>Tạo đơn hàng mới</td>
+            </tr>
+            <tr>
+                <td><strong>POST</strong></td>
+                <td><code>/api/v1/payments/vnpay/create-url</code></td>
+                <td>Customer</td>
+                <td>Tạo link thanh toán VNPay</td>
+            </tr>
+            <tr>
+                <td><strong>GET</strong></td>
+                <td><code>/api/v1/admin/dashboard</code></td>
+                <td>Admin</td>
+                <td>Lấy số liệu thống kê</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>7. FRONTEND STRUCTURE (ReactJS + TailwindCSS)</h2>
+    <h3>Kỹ thuật Frontend:</h3>
+    <ul>
+        <li><strong>Data Fetching:</strong> Dùng React Query (TanStack Query) kết hợp Axios để tự động caching, quản lý loading/error state.</li>
+        <li><strong>Performance:</strong> Sử dụng <code>React.lazy()</code> và <code>Suspense</code> để code-splitting các trang lớn.</li>
+        <li><strong>Infinite Scroll:</strong> Cho trang danh sách sản phẩm thay vì pagination truyền thống để tăng trải nghiệm.</li>
+    </ul>
+
+    <h2>8. THIẾT KẾ UI/UX</h2>
+    <ul>
+        <li><strong>Trang chủ:</strong> Banner lớn (Carousel), Flash Sale section (có đồng hồ đếm ngược), Danh mục nổi bật, Gợi ý hôm nay (Recommendation).</li>
+        <li><strong>Trang chi tiết SP:</strong> Ảnh slider bên trái. Bên phải gồm: Tên, Giá (cũ/mới), Biến thể (chọn màu/RAM cập nhật giá realtime), Nút "Thêm vào giỏ" &amp; "Mua ngay". Dưới cùng là Thông số kỹ thuật &amp; Đánh giá (có filter theo số sao).</li>
+        <li><strong>Thanh toán:</strong> Checkout một trang (One-page checkout). Chia làm 2 cột: Cột trái nhập địa chỉ, cột phải tóm tắt giỏ hàng, ô nhập voucher và tổng tiền.</li>
+        <li><strong>Admin Dashboard:</strong> Sidebar cố định bên trái. Không gian chính hiển thị biểu đồ Chart.js trực quan. Bảng dữ liệu có phân trang, tìm kiếm và export ra Excel.</li>
+    </ul>
+
+    <h2>9. FEATURE NÂNG CAO ĐỂ ĐỒ ÁN NỔI BẬT</h2>
+    <ul>
+        <li><strong>Hệ thống Voucher thông minh:</strong> Áp dụng thuật toán để tự động tính toán Voucher nào có lợi nhất cho người dùng khi họ có nhiều mã.</li>
+        <li><strong>Product Search Advanced:</strong> Tìm kiếm Full-text search kết hợp debounce 500ms để giảm tải server. Gợi ý từ khóa ngay khi gõ (Autocomplete).</li>
+        <li><strong>Tích hợp thanh toán thật:</strong> Tích hợp sandbox của VNPay hoặc MoMo. <span class="highlight">Hội đồng rất thích những đồ án có flow dòng tiền thực tế.</span></li>
+        <li><strong>Realtime Notifications:</strong> Khi đơn hàng đổi trạng thái từ "Đang xử lý" sang "Đang giao", bắn socket cập nhật ngay lập tức icon cái chuông trên Navbar của user.</li>
+    </ul>
+
+    <h2>10. THIẾT KẾ FLASH SALE CHUYÊN SÂU (FEATURE "ĂN ĐIỂM")</h2>
+    <p><strong>Bài toán:</strong> Có 10 cái iPhone giá 1 triệu. 1000 người click "Mua" cùng một giây. Nếu code không chuẩn, DB sẽ ghi nhận bán được 100 cái (Overselling).</p>
+    <p><strong>Giải pháp với MongoDB (Atomic Operations &amp; Optimistic Locking):</strong></p>
+    
+    <h3>1. Thiết kế luồng (Sequence Flow):</h3>
+    <ul>
+        <li>User vào trang Flash Sale (Lấy data qua Cache nếu có, hoặc DB).</li>
+        <li>Click "Mua ngay" &rarr; Đẩy request vào backend.</li>
+        <li><strong>Giữ chỗ (Reserve Stock):</strong> Backend sử dụng toán tử <code>$inc</code> của MongoDB kèm theo điều kiện lọc để trừ tồn kho nguyên tử (Atomic).</li>
+    </ul>
+
+    <h3>2. Code pattern chống Oversell:</h3>
+<pre>// Update nguyên tử: Chỉ trừ stock nếu stock hiện tại lớn hơn số lượng muốn mua
+const product = await Product.findOneAndUpdate(
+  {
+    _id: productId,
+    stock: { $gte: quantityToBuy } // Điều kiện tiên quyết
+  },
+  {
+    $inc: { stock: -quantityToBuy } // Trừ đi
+  },
+  { new: true }
+);
+
+if (!product) {
+  throw new Error("Sản phẩm đã bán hết hoặc không đủ số lượng!");
+}
+// Tiến hành tạo Order</pre>
+    <p><em>Lý do:</em> Toán tử của MongoDB đảm bảo ở tầng database, hai request đến cùng một microsecond cũng sẽ được xử lý tuần tự. Mệnh đề <code>$gte</code> đảm bảo stock không bao giờ bị âm.</p>
+
+    <h3>3. Xử lý Rollback (Hủy đơn trả lại kho):</h3>
+    <p>Khi user "Giữ chỗ" thành công, hệ thống tạo một Job (có thể dùng <code>node-cron</code> hoặc TTL index của MongoDB) để đếm ngược 10 phút. Nếu user không thanh toán (Payment Pending), hệ thống tự động Hủy đơn và <code>$inc</code> cộng lại số lượng vào <code>stock</code>.</p>
+
+    <h3>4. Realtime Countdown:</h3>
+    <p>Frontend tính toán countdown dựa trên <code>server_time</code> trả về từ API (không dùng giờ local của máy tính user để tránh bị hack). Khi đếm ngược về 0, call API kiểm tra hoặc reload section.</p>
+
+    <h2>11. BẢO MẬT HỆ THỐNG</h2>
+    <ul>
+        <li><strong>Authentication:</strong>
+            <ul>
+                <li>Dùng Access Token (tuổi thọ ngắn: 15-30p) lưu ở bộ nhớ Frontend.</li>
+                <li>Refresh Token (tuổi thọ dài: 7-30 ngày) lưu ở <code>httpOnly cookie</code> để tránh mã độc XSS lấy cắp.</li>
+            </ul>
+        </li>
+        <li><strong>Rate Limit:</strong> Dùng <code>express-rate-limit</code> chặn spam API (vd: 100 requests/15 phút trên mỗi IP). Riêng API Đăng nhập/OTP chặn gắt hơn (5 req/phút) để chống Brute Force.</li>
+        <li><strong>Security Headers:</strong> Dùng middleware <code>helmet</code> để che giấu thông tin Express, thiết lập các header chống Clickjacking.</li>
+        <li><strong>Chống NoSQL Injection:</strong> Dùng <code>express-mongo-sanitize</code> để loại bỏ các ký tự <code>$</code> trong request body, tránh hacker bypass logic đăng nhập.</li>
+        <li><strong>Validate Dữ liệu:</strong> Tất cả API phải đi qua Joi/Zod, chặn nghiêm ngặt các field thừa (strip unknown).</li>
+    </ul>
+
+    <h2>12. KẾ HOẠCH THỰC HIỆN ĐỒ ÁN</h2>
+    <p>Roadmap dự kiến cho 12 tuần (3 tháng):</p>
+    <ul>
+        <li><strong>Phase 1: Phân tích &amp; Thiết kế (Tuần 1 - 2)</strong>
+            <ul>
+                <li>Chốt scope nghiệp vụ, vẽ Use Case, ERD Database.</li>
+                <li>Setup repository GitHub, cấu hình CI cơ bản.</li>
+                <li>Thiết kế UI trên Figma (hoặc clone UI Shopee/Tiki).</li>
+            </ul>
+        </li>
+        <li><strong>Phase 2: Core Backend &amp; CMS (Tuần 3 - 6)</strong>
+            <ul>
+                <li>Xây dựng kiến trúc ExpressJS, kết nối MongoDB.</li>
+                <li>Làm API Auth, CRUD Sản phẩm, Danh mục, User.</li>
+                <li>Build trang Admin Frontend (Quản lý và Dashboard).</li>
+            </ul>
+        </li>
+        <li><strong>Phase 3: Customer Frontend &amp; Core Features (Tuần 7 - 9)</strong>
+            <ul>
+                <li>Build trang chủ, trang chi tiết sản phẩm.</li>
+                <li>Xử lý logic Giỏ hàng, Checkout, luồng Thanh toán (Tích hợp VNPay).</li>
+            </ul>
+        </li>
+        <li><strong>Phase 4: Advanced Features &amp; Hoàn thiện (Tuần 10 - 12)</strong>
+            <ul>
+                <li>Triển khai hệ thống Flash Sale &amp; Inventory locking.</li>
+                <li>Kiểm thử chịu tải cơ bản, fix bug, responsive UI.</li>
+                <li>Deploy lên Cloud (Sử dụng GCP VM instance hoặc Render/Vercel).</li>
+                <li>Viết báo cáo luận văn, chuẩn bị slide và kịch bản demo bảo vệ.</li>
+            </ul>
+        </li>
+    </ul>
+
+</body>
+</html>
