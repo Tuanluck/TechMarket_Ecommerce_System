@@ -52,9 +52,30 @@ const logout = async (req, res) => {
     }
 };
 
+const refreshToken = async (req, res) => {
+    try {
+        const data = await authService.refreshToken(req.body.refreshToken);
+        return res.status(200).json({
+            success: true,
+            message: "Làm mới token thành công",
+            data: {
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token,
+            },
+        });
+    } catch (error) {
+        return res.status(error.status || 500).json({
+            success: false,
+            error_code: error.code || "INVALID_REFRESH_TOKEN",
+            message: error.message,
+        });
+    }
+};
+
 
 module.exports = {
     register,
     login,
-    logout
+    logout,
+    refreshToken
 }

@@ -40,6 +40,52 @@ const VoucherSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Số lượt đã sử dụng không thể âm'],
     },
+    status: {
+      type: String,
+      enum: ['active', 'draft'],
+      default: 'active',
+    },
+    expiryDate: {
+      type: Date,
+    },
+    applicableCustomerGroups: {
+      type: [String],
+      default: ['all'],
+    },
+    limitPerCustomer: {
+      type: Number,
+      default: 1,
+    },
+    applicablePaymentMethods: {
+      type: [String],
+      default: ['all'],
+    },
+    applyScope: {
+      type: String,
+      enum: ['all', 'category', 'product'],
+      default: 'all',
+    },
+    applicableProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+      },
+    ],
+    applicableCategories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+      },
+    ],
+    applyScopeChannel: {
+      type: String,
+      enum: ['online', 'in-store', 'all'],
+      default: 'all',
+    },
+    applicableChannels: {
+      type: [String],
+      default: ['website', 'app', 'messenger'],
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -49,9 +95,6 @@ const VoucherSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Index cho code phục vụ tra cứu mã giảm giá nhanh chóng
-VoucherSchema.index({ code: 1 }, { unique: true });
 
 // Query middleware to filter out deleted vouchers
 VoucherSchema.pre(/^find/, function () {

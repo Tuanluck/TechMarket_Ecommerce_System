@@ -85,9 +85,7 @@ const ProductSchema = new mongoose.Schema(
 );
 
 // --- Indexing Strategy ---
-// Unique Index cho slug để tối ưu tìm kiếm theo URL SEO
-ProductSchema.index({ slug: 1 }, { unique: true });
-
+// slug đã có unique:true trong field definition — không khai báo lại index ở đây tránh cảnh báo duplicate
 // Compound Index cho categoryId và basePrice phục vụ bộ lọc tìm kiếm theo danh mục kết hợp sắp xếp/lọc giá
 ProductSchema.index({ categoryId: 1, basePrice: 1 });
 

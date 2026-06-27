@@ -31,6 +31,10 @@ const OrderSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Số tiền thanh toán không được nhỏ hơn 0'],
     },
+    voucherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Voucher',
+    },
     paymentMethod: {
       type: String,
       enum: {
@@ -75,8 +79,7 @@ const OrderSchema = new mongoose.Schema(
 
 // --- Indexing Strategy ---
 
-// 1. Unique Index cho orderCode để tra cứu nhanh đơn hàng cụ thể
-OrderSchema.index({ orderCode: 1 }, { unique: true });
+// 1. orderCode đã có unique:true trong field definition — không khai báo lại index ở đây tránh cảnh báo duplicate
 
 // 2. Compound Index cho userId và createdAt phục vụ truy vấn lịch sử đơn hàng của người dùng (Sắp xếp theo thời gian mới nhất)
 OrderSchema.index({ userId: 1, createdAt: -1 });

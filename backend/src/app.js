@@ -33,6 +33,30 @@ app.use(morgan('dev'));
 // --- 5. API Routes ---
 app.use('/api/v1/auth', authRoute);
 
+const userRoute = require('./routes/userRoute');
+const categoryRoute = require('./routes/categoryRoute');
+const brandRoute = require('./routes/brandRoute');
+const productRoute = require('./routes/productRoute');
+const cartRoute = require('./routes/cartRoute');
+const orderRoute = require('./routes/orderRoute');
+const adminRoute = require('./routes/adminRoute');
+const voucherRoute = require('./routes/voucherRoute');
+const reviewRoute = require('./routes/reviewRoute');
+const wishlistRoute = require('./routes/wishlistRoute');
+const flashSaleRoute = require('./routes/flashSaleRoute');
+
+app.use('/api/v1/users', userRoute);
+app.use('/api/v1/categories', categoryRoute);
+app.use('/api/v1/brands', brandRoute);
+app.use('/api/v1/products', productRoute);
+app.use('/api/v1/cart', cartRoute);
+app.use('/api/v1/orders', orderRoute);
+app.use('/api/v1/admin', adminRoute);
+app.use('/api/v1/vouchers', voucherRoute);
+app.use('/api/v1/reviews', reviewRoute);
+app.use('/api/v1/wishlist', wishlistRoute);
+app.use('/api/v1/flash-sales', flashSaleRoute);
+
 app.get('/', (req, res) => {
   res.json('Welcome to TechMarket API')
 })

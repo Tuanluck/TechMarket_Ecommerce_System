@@ -20,7 +20,17 @@ const loginSchema = {
     })
 }
 
+const refreshTokenSchema = {
+    body: Joi.object({
+        refreshToken: Joi.string().required().messages({
+            'any.required': 'Refresh token là bắt buộc',
+            'string.empty': 'Refresh token không được để trống'
+        })
+    })
+}
+
 module.exports = {
     registerSchema,
-    loginSchema
+    loginSchema,
+    refreshTokenSchema
 }
