@@ -1,1 +1,83 @@
 @import "tailwindcss";
+
+/* Custom Admin Sidebar styling (Light E-commerce Theme) */
+.admin-sidebar-menu.ant-menu {
+  background-color: transparent !important;
+  border-inline-end: none !important;
+}
+
+.admin-sidebar-menu .ant-menu-item {
+  border-radius: 8px !important;
+  margin: 4px 10px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid transparent !important; /* Prevent layout shift */
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Hover state */
+.admin-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected):hover {
+  background-color: #e0f2fe !important; /* sky-100 */
+  border-color: #bae6fd !important; /* sky-200 */
+}
+
+.admin-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected) a {
+  color: #0369a1 !important; /* sky-700 */
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+
+.admin-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected):hover a,
+.admin-sidebar-menu .ant-menu-item:not(.ant-menu-item-selected):hover .ant-menu-item-icon {
+  color: #0284c7 !important; /* sky-600 */
+}
+
+/* Active state (Lining style outline) */
+.admin-sidebar-menu .ant-menu-item-selected {
+  background-color: #e0f2fe !important; /* sky-100 */
+  border: 1px solid #38bdf8 !important; /* sky-400 line outline */
+  color: #0369a1 !important; /* sky-700 */
+}
+
+.admin-sidebar-menu .ant-menu-item-selected a {
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+}
+
+.admin-sidebar-menu .ant-menu-item .ant-menu-item-icon {
+  color: #0284c7 !important; /* sky-600 */
+  transition: color 0.2s ease;
+}
+
+.admin-sidebar-menu .ant-menu-item-selected .ant-menu-item-icon {
+  color: #0369a1 !important;
+}
+
+/* Pill select overrides for Table orders status dropdown */
+.status-select-pill .ant-select-selector {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 8px !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.status-select-pill .ant-select-selection-item {
+  padding-inline-end: 0 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Dropdown menu items for status */
+.status-dropdown .ant-select-item {
+  border-radius: 6px !important;
+  margin: 4px 6px !important;
+  transition: all 0.2s ease !important;
+}
