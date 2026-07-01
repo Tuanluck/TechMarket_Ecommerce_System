@@ -25,6 +25,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import VouchersPage from './pages/VouchersPage'
 import NewsPage from './pages/NewsPage'
 import ContactPage from './pages/ContactPage'
+import VnpayReturnPage from './pages/VnpayReturnPage'
 
 // Admin Panel Pages
 import AdminLayout from './pages/admin/AdminLayout'
@@ -97,6 +98,16 @@ export default function App() {
                 <Layout>
                   <ProtectedRoute>
                     <OrderSuccessPage />
+                  </ProtectedRoute>
+                </Layout>
+              }
+            />
+            <Route
+              path="/vnpay-return"
+              element={
+                <Layout>
+                  <ProtectedRoute>
+                    <VnpayReturnPage />
                   </ProtectedRoute>
                 </Layout>
               }
