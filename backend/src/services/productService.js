@@ -9,6 +9,8 @@ const getProducts = async (queryParams) => {
         limit = 12,
         category,
         brand,
+        categoryId,
+        brandId,
         minPrice,
         maxPrice,
         sort,
@@ -22,8 +24,10 @@ const getProducts = async (queryParams) => {
 
     const filter = {};
 
-    // Filter by category slug
-    if (category) {
+    // Filter by category (ID or Slug)
+    if (categoryId) {
+        filter.categoryId = categoryId;
+    } else if (category) {
         const cat = await Category.findOne({ slug: category });
         if (cat) {
             filter.categoryId = cat._id;
@@ -33,8 +37,10 @@ const getProducts = async (queryParams) => {
         }
     }
 
-    // Filter by brand slug
-    if (brand) {
+    // Filter by brand (ID or Slug)
+    if (brandId) {
+        filter.brandId = brandId;
+    } else if (brand) {
         const br = await Brand.findOne({ slug: brand });
         if (br) {
             filter.brandId = br._id;

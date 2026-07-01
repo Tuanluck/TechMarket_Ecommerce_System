@@ -47,7 +47,9 @@ const createProductSchema = {
             'number.min': 'Tồn kho sản phẩm không được nhỏ hơn 0'
         }),
         specs: Joi.object().pattern(Joi.string(), Joi.string().allow('')).default({}),
-        variants: Joi.array().items(variantSchema).default([])
+        variants: Joi.array().items(variantSchema).default([]),
+        description: Joi.string().trim().allow('').default(''),
+        isActive: Joi.boolean().default(true)
     })
 };
 
@@ -70,7 +72,9 @@ const updateProductSchema = {
             'number.min': 'Tồn kho sản phẩm không được nhỏ hơn 0'
         }),
         specs: Joi.object().pattern(Joi.string(), Joi.string().allow('')).optional(),
-        variants: Joi.array().items(variantSchema).optional()
+        variants: Joi.array().items(variantSchema).optional(),
+        description: Joi.string().trim().allow('').optional(),
+        isActive: Joi.boolean().optional()
     })
 };
 

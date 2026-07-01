@@ -473,27 +473,14 @@ export default function AdminDashboardPage() {
 
               return (
                 <Table.Summary.Row className="bg-slate-50/50 font-bold border-t border-slate-100">
-                  <Table.Summary.Cell index={0} className="font-mono text-xs text-slate-750">Total</Table.Summary.Cell>
-                  <Table.Summary.Cell index={1} className="text-slate-650 text-xs">
-                    {pageData.length > 0 ? pageData[0].userId?.fullName || 'N/A' : ''}
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={2} className="text-slate-800 text-xs">
+                  <Table.Summary.Cell index={0} className="text-xs text-slate-800 font-extrabold uppercase">Tổng cộng</Table.Summary.Cell>
+                  <Table.Summary.Cell index={1}></Table.Summary.Cell>
+                  <Table.Summary.Cell index={2} className="text-slate-800 text-xs font-black">
                     {totalAmount.toLocaleString('vi-VN')} đ
                   </Table.Summary.Cell>
-                  <Table.Summary.Cell index={3}>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-250">
-                      <CheckCircle2 size={12} className="text-emerald-500" />
-                      Đã giao
-                    </span>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={4}>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-550 border border-red-100">
-                      Chưa thanh toán
-                    </span>
-                  </Table.Summary.Cell>
-                  <Table.Summary.Cell index={5} className="text-slate-450 text-[10px]">
-                    {pageData.length > 0 ? new Date(pageData[0].createdAt).toLocaleDateString('vi-VN') : ''}
-                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={3}></Table.Summary.Cell>
+                  <Table.Summary.Cell index={4}></Table.Summary.Cell>
+                  <Table.Summary.Cell index={5}></Table.Summary.Cell>
                 </Table.Summary.Row>
               );
             }}

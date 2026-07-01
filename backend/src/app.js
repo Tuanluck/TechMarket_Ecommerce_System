@@ -28,6 +28,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('dev'));
 
+const path = require('path');
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
+
 
 
 // --- 5. API Routes ---
@@ -45,6 +48,7 @@ const voucherRoute = require('./routes/voucherRoute');
 const reviewRoute = require('./routes/reviewRoute');
 const wishlistRoute = require('./routes/wishlistRoute');
 const flashSaleRoute = require('./routes/flashSaleRoute');
+const uploadRoute = require('./routes/uploadRoute');
 
 app.use('/api/v1/users', userRoute);
 app.use('/api/v1/categories', categoryRoute);
@@ -58,6 +62,7 @@ app.use('/api/v1/vouchers', voucherRoute);
 app.use('/api/v1/reviews', reviewRoute);
 app.use('/api/v1/wishlist', wishlistRoute);
 app.use('/api/v1/flash-sales', flashSaleRoute);
+app.use('/api/v1/uploads', uploadRoute);
 
 app.get('/', (req, res) => {
   res.json('Welcome to TechMarket API')

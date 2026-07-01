@@ -8,7 +8,6 @@ function getVnpayDateFormat(date) {
     const pad = (num) => String(num).padStart(2, '0');
     
     // Convert to GMT+7 (Vietnam Time)
-    // Date object is in UTC or local server time, let's compute GMT+7 representation
     const tzOffset = 7 * 60; // GMT+7 in minutes
     const localTime = date.getTime() + (date.getTimezoneOffset() + tzOffset) * 60000;
     const gmt7Date = new Date(localTime);
@@ -60,7 +59,11 @@ const createPaymentUrl = (order, ipAddr) => {
 
     vnp_Params = sortObject(vnp_Params);
 
-    const signData = qs.stringify(vnp_Params, { encode: false });
+    // Official VNPay v2.1.0 signature creation requirement: 
+    // Data must be stringified with encoding and spaces replaced with '+'
+    const signData = qs.stringify(vnp_Params, { encode: true })
+        .replace(/%20/g, '+');
+
     const hmac = crypto.createHmac('sha512', secretKey);
     const secureHash = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
@@ -82,7 +85,10 @@ const verifyReturnUrl = (queryParams) => {
 
     vnp_Params = sortObject(vnp_Params);
 
-    const signData = qs.stringify(vnp_Params, { encode: false });
+    // Format matching the signing logic
+    const signData = qs.stringify(vnp_Params, { encode: true })
+        .replace(/%20/g, '+');
+
     const hmac = crypto.createHmac('sha512', secretKey);
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
