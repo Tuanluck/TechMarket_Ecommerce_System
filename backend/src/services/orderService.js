@@ -3,6 +3,7 @@ const OrderItem = require('../models/OrderItem');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Voucher = require('../models/Voucher');
+const PaymentWebhookRaw = require('../models/PaymentWebhookRaw');
 
 const placeOrder = async (userId, orderData) => {
     const { shippingAddress, paymentMethod, voucherCode } = orderData;
@@ -245,10 +246,68 @@ const updateOrderStatus = async (id, status) => {
     return order;
 };
 
+const confirmVnpayPayment = async (orderCode, responseCode, queryParams) => {
+    const order = await Order.findOne({ orderCode });
+    if (!order) {
+        const error = new Error("Đơn hàng không tồn tại");
+        error.status = 404;
+        error.code = "ORDER_NOT_FOUND";
+        throw error;
+    }
+
+    // If order is already paid, just return it
+    if (order.paymentStatus === 'paid') {
+        return order;
+    }
+
+    const isSuccess = responseCode === '00';
+    const transactionId = queryParams.vnp_TransactionNo || `VNP_${Date.now()}`;
+
+    // Try to log the webhook payload
+    try {
+        await PaymentWebhookRaw.create({
+            orderId: order._id,
+            transactionId: transactionId,
+            payload: queryParams,
+            status: isSuccess ? 'processed' : 'failed'
+        });
+    } catch (dbError) {
+        // If it's a duplicate transactionId, it means we already processed this webhook
+        if (dbError.code === 11000) {
+            console.log(`Duplicate webhook received for transaction ${transactionId}, skipping processing.`);
+            return order;
+        }
+        console.error("Failed to log payment webhook raw payload:", dbError);
+    }
+
+    if (isSuccess) {
+        order.paymentStatus = 'paid';
+        order.orderStatus = 'processing';
+        await order.save();
+    } else {
+        // Only revert stock if we are transitioning to cancelled
+        if (order.orderStatus !== 'cancelled') {
+            order.orderStatus = 'cancelled';
+            await order.save();
+
+            // Revert stock
+            const items = await OrderItem.find({ orderId: order._id });
+            for (const item of items) {
+                await Product.findByIdAndUpdate(item.productId, {
+                    $inc: { stock: item.quantity }
+                });
+            }
+        }
+    }
+
+    return order;
+};
+
 module.exports = {
     placeOrder,
     getOrders,
     getOrderById,
     cancelOrder,
-    updateOrderStatus
+    updateOrderStatus,
+    confirmVnpayPayment
 };
