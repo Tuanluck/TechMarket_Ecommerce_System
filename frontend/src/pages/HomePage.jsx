@@ -164,8 +164,38 @@ export default function HomePage() {
   const currentPage = parseInt(searchParams.get('page') || '1')
   const searchQuery = searchParams.get('q') || ''
 
+  const renderPageNumbers = () => {
+    const pages = []
+    const range = 2 // Number of pages to show before and after current page
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+        pages.push(
+          <button
+            key={i}
+            onClick={() => handlePageChange(i)}
+            className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              currentPage === i
+                ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-100'
+                : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 hover:text-gray-700'
+            }`}
+          >
+            {i}
+          </button>
+        )
+      } else if (i === currentPage - range - 1 || i === currentPage + range + 1) {
+        pages.push(
+          <span key={i} className="text-gray-400 text-xs px-1 select-none">
+            ...
+          </span>
+        )
+      }
+    }
+    return pages
+  }
+
   return (
-    <div className="space-y-8 bg-gray-50/20">
+    <div className="space-y-6 bg-gray-50/20 pb-12">
       {/* Top Hero Section: Promo Carousel + Compact Autoplaying Flash Sale */}
       {!searchQuery && hasCheckedFlashSale && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
@@ -177,6 +207,41 @@ export default function HomePage() {
               <FlashSaleBanner flashSaleData={activeFlashSale} />
             </div>
           )}
+        </div>
+      )}
+
+      {/* Horizontal Category Nav */}
+      {categories.length > 0 && (
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Khám phá danh mục</span>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+            <button
+              onClick={() => applyFilters({ category: '', page: '1' })}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                selectedCategory === ''
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-50'
+                  : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+              }`}
+            >
+              Tất cả sản phẩm
+            </button>
+            {categories.map((c) => {
+              const isActive = selectedCategory === c.slug
+              return (
+                <button
+                  key={c._id}
+                  onClick={() => applyFilters({ category: isActive ? '' : c.slug, page: '1' })}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border whitespace-nowrap ${
+                    isActive
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm shadow-indigo-50'
+                      : 'bg-gray-50 text-gray-600 border-gray-100 hover:bg-gray-100'
+                  }`}
+                >
+                  {c.name}
+                </button>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -197,14 +262,14 @@ export default function HomePage() {
               })
               setSearchParams(currentParams)
             }}
-            className="text-sm font-bold text-indigo-600 hover:text-indigo-500 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 self-start md:self-auto transition-all"
+            className="text-sm font-bold text-indigo-600 hover:text-indigo-500 bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-100 self-start md:self-auto transition-all cursor-pointer"
           >
             Xóa tìm kiếm
           </button>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Filters Sidebar */}
         <aside className="w-full lg:w-64 flex-shrink-0 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-fit space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-gray-100">
@@ -213,7 +278,7 @@ export default function HomePage() {
             </h3>
             <button
               onClick={handleResetFilters}
-              className="text-xs font-bold text-gray-400 hover:text-indigo-600 transition-colors"
+              className="text-xs font-bold text-gray-400 hover:text-indigo-600 transition-colors cursor-pointer"
             >
               Thiết lập lại
             </button>
@@ -286,7 +351,7 @@ export default function HomePage() {
             </div>
             <button
               onClick={() => applyFilters()}
-              className="w-full mt-2 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all duration-200"
+              className="w-full mt-2 py-2 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer"
             >
               Áp dụng giá
             </button>
@@ -331,6 +396,11 @@ export default function HomePage() {
             />
           ) : (
             <>
+              {/* Product list results info banner */}
+              <div className="flex justify-between items-center text-xs font-semibold text-gray-400 px-1">
+                <span>Hiển thị {products.length} trong tổng số {totalProducts} sản phẩm</span>
+              </div>
+
               {/* Product list */}
               <ProductGrid products={products} />
 
@@ -340,19 +410,21 @@ export default function HomePage() {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                    className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                   >
-                    Trang trước
+                    Trước
                   </button>
-                  <span className="text-sm font-bold text-gray-600 px-4">
-                    Trang {currentPage} / {totalPages}
-                  </span>
+
+                  <div className="flex items-center gap-1.5">
+                    {renderPageNumbers()}
+                  </div>
+
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-150"
+                    className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                   >
-                    Trang sau
+                    Sau
                   </button>
                 </div>
               )}

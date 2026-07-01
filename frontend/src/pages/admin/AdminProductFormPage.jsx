@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Input, InputNumber, Button, Select, Space, Card, Divider, message, Spin } from 'antd';
-import { Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Form, Input, InputNumber, Button, Select, Space, Card, Divider, message, Spin, Switch, Image, Upload } from 'antd';
+import { Plus, Trash2, ArrowLeft, Upload as UploadIcon } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 
@@ -14,6 +14,67 @@ export default function AdminProductFormPage() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [productId, setProductId] = useState(null);
+  
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+
+  const uploadThumbnail = async (options) => {
+    const { file, onSuccess, onError } = options;
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setUploadingThumbnail(true);
+    try {
+      const res = await axiosInstance.post('/uploads/single', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        form.setFieldsValue({ thumbnail: res.data.url });
+        message.success('Tải ảnh đại diện lên thành công');
+        onSuccess(res.data.url);
+      } else {
+        throw new Error(res.data.message || 'Lỗi không rõ');
+      }
+    } catch (err) {
+      console.error(err);
+      message.error(err.response?.data?.message || err.message || 'Không thể tải ảnh lên');
+      onError(err);
+    } finally {
+      setUploadingThumbnail(false);
+    }
+  };
+
+  const uploadGallery = async (options) => {
+    const { file, onSuccess, onError } = options;
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setUploadingGallery(true);
+    try {
+      const res = await axiosInstance.post('/uploads/single', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        const currentList = form.getFieldValue('imagesList') || [];
+        form.setFieldsValue({
+          imagesList: [...currentList, res.data.url]
+        });
+        message.success(`Đã thêm ảnh vào thư viện`);
+        onSuccess(res.data.url);
+      } else {
+        throw new Error(res.data.message || 'Lỗi không rõ');
+      }
+    } catch (err) {
+      console.error(err);
+      message.error(err.response?.data?.message || err.message || 'Không thể tải ảnh lên');
+      onError(err);
+    } finally {
+      setUploadingGallery(false);
+    }
+  };
+
+  // Watch for thumbnail value to show live preview
+  const thumbnailWatch = Form.useWatch('thumbnail', form);
 
   // Simple slugify function
   const slugify = (text) => {
@@ -72,6 +133,9 @@ export default function AdminProductFormPage() {
             stock: product.stock,
             specsList: specsArray,
             variants: product.variants || [],
+            description: product.description || '',
+            isActive: product.isActive !== false,
+            imagesList: product.images || [],
           });
         }
       })
@@ -103,10 +167,13 @@ export default function AdminProductFormPage() {
       categoryId: values.categoryId,
       brandId: values.brandId,
       thumbnail: values.thumbnail,
+      images: values.imagesList || [],
       basePrice: values.basePrice,
       stock: values.stock,
       specs: specs,
       variants: values.variants || [],
+      description: values.description || '',
+      isActive: values.isActive === undefined ? true : values.isActive,
     };
 
     const request = isEditMode
@@ -136,14 +203,16 @@ export default function AdminProductFormPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Link to="/admin/products" className="text-slate-600 hover:text-slate-900 transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">{isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}</h1>
-          <p className="text-slate-500">{isEditMode ? 'Cập nhật thông tin chi tiết sản phẩm' : 'Tạo sản phẩm mới trong hệ thống'}</p>
+    <div className="space-y-6 max-w-4xl mx-auto pb-12">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link to="/admin/products" className="text-slate-600 hover:text-slate-900 transition-colors">
+            <ArrowLeft size={20} />
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">{isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}</h1>
+            <p className="text-slate-500">{isEditMode ? 'Cập nhật thông tin chi tiết sản phẩm' : 'Tạo sản phẩm mới trong hệ thống'}</p>
+          </div>
         </div>
       </div>
 
@@ -221,13 +290,177 @@ export default function AdminProductFormPage() {
             </Form.Item>
 
             <Form.Item
-              label="Ảnh đại diện (Thumbnail URL)"
-              name="thumbnail"
-              rules={[{ required: true, message: 'Vui lòng nhập URL ảnh' }]}
+              label="Trạng thái kinh doanh"
+              name="isActive"
+              valuePropName="checked"
             >
-              <Input placeholder="https://example.com/image.jpg" />
+              <Switch checkedChildren="Đang bán" unCheckedChildren="Ẩn/Tạm ngưng" />
             </Form.Item>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start pt-2">
+            <div className="md:col-span-3">
+              <Form.Item
+                label="Ảnh đại diện (Thumbnail URL)"
+                name="thumbnail"
+                rules={[{ required: true, message: 'Vui lòng nhập URL hoặc tải ảnh lên' }]}
+              >
+                <Input 
+                  placeholder="https://example.com/image.jpg" 
+                  addonAfter={
+                    <Upload
+                      customRequest={uploadThumbnail}
+                      showUploadList={false}
+                      accept="image/*"
+                      beforeUpload={(file) => {
+                        const isLt5M = file.size / 1024 / 1024 < 5;
+                        if (!isLt5M) {
+                          message.error('Ảnh phải nhỏ hơn 5MB!');
+                        }
+                        return isLt5M;
+                      }}
+                    >
+                      <span className="text-xs text-[#3b82f6] cursor-pointer font-bold flex items-center gap-1">
+                        <UploadIcon size={12} />
+                        Tải lên
+                      </span>
+                    </Upload>
+                  }
+                />
+              </Form.Item>
+            </div>
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-xs text-slate-400 font-medium mb-1">Preview</span>
+              <div className="w-20 h-20 rounded-xl border border-slate-100 overflow-hidden bg-slate-50 flex items-center justify-center">
+                {uploadingThumbnail ? (
+                  <Spin size="small" />
+                ) : thumbnailWatch ? (
+                  <img src={thumbnailWatch} alt="Thumbnail preview" className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://placehold.co/100x100?text=Error'; }} />
+                ) : (
+                  <span className="text-slate-350 text-[10px]">No image</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Form.Item
+            label="Mô tả sản phẩm"
+            name="description"
+            className="pt-2"
+          >
+            <Input.TextArea rows={4} placeholder="Nhập mô tả giới thiệu về sản phẩm..." />
+          </Form.Item>
+        </Card>
+
+        {/* Gallery Images List */}
+        <Card 
+          title="Thư viện ảnh chi tiết (Product Gallery)" 
+          bordered={false} 
+          className="shadow-sm border border-slate-100"
+          extra={
+            <Upload
+              customRequest={uploadGallery}
+              showUploadList={false}
+              multiple
+              accept="image/*"
+              beforeUpload={(file) => {
+                const isLt5M = file.size / 1024 / 1024 < 5;
+                if (!isLt5M) {
+                  message.error('Ảnh phải nhỏ hơn 5MB!');
+                }
+                return isLt5M;
+              }}
+            >
+              <Button 
+                type="dashed" 
+                loading={uploadingGallery} 
+                icon={<UploadIcon size={14} />}
+                className="flex items-center gap-1 font-bold text-xs text-[#3b82f6] border-[#3b82f6] hover:text-[#2563eb] hover:border-[#2563eb] cursor-pointer"
+              >
+                Tải lên nhiều ảnh
+              </Button>
+            </Upload>
+          }
+        >
+          <Form.List name="imagesList">
+            {(fields, { add, remove }) => (
+              <div className="space-y-4">
+                {fields.length === 0 && (
+                  <div className="text-center py-8 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+                    <span className="text-xs text-slate-400">Chưa có ảnh chi tiết nào. Hãy nhập URL hoặc bấm "Tải lên nhiều ảnh" ở góc trên.</span>
+                  </div>
+                )}
+                {fields.map(({ key, name, ...restField }) => {
+                  const imageUrl = form.getFieldValue(['imagesList', name]);
+                  return (
+                    <div key={key} className="flex gap-4 items-center bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                      <div className="flex-1">
+                        <Form.Item
+                          {...restField}
+                          name={name}
+                          rules={[{ required: true, message: 'Nhập URL ảnh chi tiết' }]}
+                          noStyle
+                        >
+                          <Input 
+                            placeholder="https://example.com/gallery-image.jpg" 
+                            className="w-full" 
+                            addonAfter={
+                              <Upload
+                                customRequest={async (options) => {
+                                  const { file, onSuccess, onError } = options;
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+                                  try {
+                                    const res = await axiosInstance.post('/uploads/single', formData, {
+                                      headers: { 'Content-Type': 'multipart/form-data' }
+                                    });
+                                    if (res.data.success) {
+                                      const currentList = form.getFieldValue('imagesList');
+                                      currentList[name] = res.data.url;
+                                      form.setFieldsValue({ imagesList: [...currentList] });
+                                      message.success('Thay thế ảnh thành công');
+                                      onSuccess(res.data.url);
+                                    }
+                                  } catch (err) {
+                                    message.error('Không thể tải ảnh lên');
+                                    onError(err);
+                                  }
+                                }}
+                                showUploadList={false}
+                                accept="image/*"
+                              >
+                                <span className="text-xs text-[#3b82f6] cursor-pointer font-bold flex items-center gap-0.5">
+                                  <UploadIcon size={11} />
+                                  Tải lên
+                                </span>
+                              </Upload>
+                            }
+                          />
+                        </Form.Item>
+                      </div>
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 bg-white flex-shrink-0 flex items-center justify-center">
+                        {imageUrl ? (
+                          <img src={imageUrl} alt="Gallery item" className="w-full h-full object-cover" onError={(e) => { e.target.src = 'https://placehold.co/100x100?text=Error'; }} />
+                        ) : (
+                          <span className="text-slate-300 text-[9px] text-center leading-none">No preview</span>
+                        )}
+                      </div>
+                      <Button type="text" danger onClick={() => remove(name)} icon={<Trash2 size={16} />} />
+                    </div>
+                  );
+                })}
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  block
+                  icon={<Plus size={14} />}
+                  className="flex items-center justify-center gap-1 border-dashed hover:border-blue-500 hover:text-blue-500 cursor-pointer"
+                >
+                  Thêm URL ảnh thủ công
+                </Button>
+              </div>
+            )}
+          </Form.List>
         </Card>
 
         <Card title="Thông số kỹ thuật (Specifications)" bordered={false} className="shadow-sm border border-slate-100">

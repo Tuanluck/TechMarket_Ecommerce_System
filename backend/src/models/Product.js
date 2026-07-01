@@ -74,6 +74,14 @@ const ProductSchema = new mongoose.Schema(
       min: [0, 'Đánh giá không thể nhỏ hơn 0'],
       max: [5, 'Đánh giá không thể lớn hơn 5'],
     },
+    description: {
+      type: String,
+      default: '',
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

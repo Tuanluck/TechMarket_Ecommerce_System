@@ -301,12 +301,25 @@ export default function CheckoutPage() {
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" 
                   />
                   <div>
-                    <p className="text-sm font-bold text-gray-805">Thanh toán qua ví VNPay</p>
-                    <p className="text-xs text-gray-500">Kết nối thẻ ngân hàng hoặc quét mã QR.</p>
+                    <p className="text-sm font-bold text-gray-800">Thanh toán qua cổng VNPay</p>
+                    <p className="text-xs text-gray-500">Thanh toán bằng mã QR hoặc thẻ ngân hàng ATM/Visa/Master.</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md uppercase">Nhanh</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-150">KÝ SỐ</span>
+                  <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md uppercase">Nhanh</span>
+                </div>
               </label>
+
+              {paymentMethod === 'vnpay' && (
+                <div className="p-3.5 bg-indigo-50/30 rounded-2xl border border-indigo-100/50 flex items-start gap-2.5 text-xs font-semibold text-indigo-700 animate-fadeIn">
+                  <span className="text-sm mt-0.5">🔒</span>
+                  <div>
+                    <p className="font-bold">Bản quyền thanh toán mã hóa SSL bảo mật</p>
+                    <p className="text-[11px] text-gray-400 font-medium leading-normal mt-0.5">Hệ thống sẽ chuyển hướng bạn sang cổng thanh toán chính thức VNPay Sandbox để nhập thông tin thẻ/quét mã an toàn.</p>
+                  </div>
+                </div>
+              )}
 
               {/* MoMo */}
               <div className="flex items-center justify-between p-4 border border-gray-150 bg-gray-50/50 rounded-2xl opacity-60">
@@ -335,7 +348,7 @@ export default function CheckoutPage() {
                   className="w-12 h-12 object-cover rounded-lg border border-gray-50"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-850 truncate">{item.productId?.name}</p>
+                  <p className="text-xs font-bold text-gray-800 truncate">{item.productId?.name}</p>
                   <p className="text-[10px] text-gray-400 font-semibold mt-0.5">
                     {item.variantName ? `Màu: ${item.variantName} | ` : ''}SL: {item.quantity}
                   </p>
@@ -420,7 +433,7 @@ export default function CheckoutPage() {
                 <span>Đang xử lý đặt hàng...</span>
               </>
             ) : (
-              'Đặt hàng ngay'
+              paymentMethod === 'vnpay' ? 'Thanh toán qua VNPay 🚀' : 'Đặt hàng ngay (COD)'
             )}
           </button>
         </div>

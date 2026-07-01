@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { formatPrice } from '../utils/helpers'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import EmptyState from '../components/common/EmptyState'
+import toast from 'react-hot-toast'
 
 export default function CartPage() {
   const navigate = useNavigate()
@@ -12,6 +13,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   // Fetch full cart data with item populated details
   const getCartDetails = async () => {
@@ -46,7 +48,7 @@ export default function CartPage() {
   const handleUpdateQuantity = async (itemId, newQty, stockLimit) => {
     if (newQty < 1) return
     if (newQty > stockLimit) {
-      alert(`Số lượng vượt quá hàng tồn kho khả dụng (${stockLimit}).`)
+      toast.error(`Số lượng vượt quá hàng tồn kho khả dụng (${stockLimit}).`)
       return
     }
 
@@ -55,21 +57,23 @@ export default function CartPage() {
       await axiosInstance.patch(`/cart/items/${itemId}`, { quantity: newQty })
       await getCartDetails()
       await fetchCart() // Update header cart count
+      toast.success('Đã cập nhật số lượng.')
     } catch (err) {
-      alert(err.response?.data?.message || 'Cập nhật số lượng thất bại.')
+      toast.error(err.response?.data?.message || 'Cập nhật số lượng thất bại.')
       setLoading(false)
     }
   }
 
   const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) return
     try {
       setLoading(true)
       await axiosInstance.delete(`/cart/items/${itemId}`)
       await getCartDetails()
       await fetchCart() // Update header cart count
+      setConfirmDeleteId(null)
+      toast.success('Đã xóa sản phẩm khỏi giỏ hàng.')
     } catch (err) {
-      alert(err.response?.data?.message || 'Xóa sản phẩm thất bại.')
+      toast.error(err.response?.data?.message || 'Xóa sản phẩm thất bại.')
       setLoading(false)
     }
   }
@@ -159,45 +163,65 @@ export default function CartPage() {
 
                 {/* Quantity Controls & Total price */}
                 <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
-                  {/* Quantity controls */}
-                  <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white">
-                    <button
-                      onClick={() => handleUpdateQuantity(item._id, item.quantity - 1, stockLimit)}
-                      disabled={item.quantity <= 1}
-                      className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      -
-                    </button>
-                    <span className="px-3 py-1.5 text-sm font-bold text-gray-800">
-                      {item.quantity}
-                    </span>
-                    <button
-                      onClick={() => handleUpdateQuantity(item._id, item.quantity + 1, stockLimit)}
-                      disabled={item.quantity >= stockLimit}
-                      className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
-                    >
-                      +
-                    </button>
-                  </div>
+                  {confirmDeleteId === item._id ? (
+                    <div className="flex items-center gap-2 bg-red-50 px-3 py-1.5 rounded-xl border border-red-100">
+                      <span className="text-xs text-red-600 font-bold">Xóa sản phẩm?</span>
+                      <button
+                        onClick={() => handleDeleteItem(item._id)}
+                        className="px-2.5 py-1 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors"
+                      >
+                        Xóa
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="px-2.5 py-1 bg-white text-gray-500 text-xs font-bold rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                      >
+                        Hủy
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Quantity controls */}
+                      <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white">
+                        <button
+                          onClick={() => handleUpdateQuantity(item._id, item.quantity - 1, stockLimit)}
+                          disabled={item.quantity <= 1}
+                          className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          -
+                        </button>
+                        <span className="px-3 py-1.5 text-sm font-bold text-gray-800">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleUpdateQuantity(item._id, item.quantity + 1, stockLimit)}
+                          disabled={item.quantity >= stockLimit}
+                          className="px-2.5 py-1.5 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          +
+                        </button>
+                      </div>
 
-                  {/* Desktop item price & total */}
-                  <div className="text-right hidden sm:block min-w-[120px]">
-                    <p className="text-sm text-gray-400 font-medium">Đơn giá: {formatPrice(itemUnitPrice)}</p>
-                    <p className="text-base font-black text-gray-800 mt-0.5">
-                      {formatPrice(itemUnitPrice * item.quantity)}
-                    </p>
-                  </div>
+                      {/* Desktop item price & total */}
+                      <div className="text-right hidden sm:block min-w-[120px]">
+                        <p className="text-sm text-gray-400 font-medium">Đơn giá: {formatPrice(itemUnitPrice)}</p>
+                        <p className="text-base font-black text-gray-800 mt-0.5">
+                          {formatPrice(itemUnitPrice * item.quantity)}
+                        </p>
+                      </div>
 
-                  {/* Remove Button */}
-                  <button
-                    onClick={() => handleDeleteItem(item._id)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Xóa sản phẩm"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
+                      {/* Remove Button */}
+                      <button
+                        onClick={() => setConfirmDeleteId(item._id)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Xóa sản phẩm"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             )

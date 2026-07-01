@@ -117,22 +117,35 @@ const placeOrder = async (userId, orderData) => {
 };
 
 const getOrders = async (userId, queryParams) => {
-    let { page = 1, limit = 10 } = queryParams;
+    let { page = 1, limit = 10, status } = queryParams;
     page = parseInt(page, 10) || 1;
     limit = parseInt(limit, 10) || 10;
 
     const skip = (page - 1) * limit;
 
-    const orders = await Order.find({ userId })
+    const filter = { userId };
+    if (status && status !== 'all') {
+        filter.orderStatus = status;
+    }
+
+    const orders = await Order.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
 
-    const total = await Order.countDocuments({ userId });
+    const ordersWithItems = await Promise.all(orders.map(async (order) => {
+        const items = await OrderItem.find({ orderId: order._id }).populate('productId', 'name slug thumbnail');
+        return {
+            ...order.toObject(),
+            items
+        };
+    }));
+
+    const total = await Order.countDocuments(filter);
     const totalPages = Math.ceil(total / limit);
 
     return {
-        orders,
+        orders: ordersWithItems,
         pagination: {
             total,
             page,

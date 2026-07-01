@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axiosInstance from '../api/axiosInstance';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import EmptyState from '../components/common/EmptyState';
@@ -159,9 +160,18 @@ export default function VouchersPage() {
                           {voucher.code}
                         </span>
                         {voucher.expiryDate && (
-                          <span className="text-[10px] text-slate-400 font-bold">
-                            HSD: {new Date(voucher.expiryDate).toLocaleDateString('vi-VN')}
-                          </span>
+                          <div className="flex items-center">
+                            <span className="text-[10px] text-slate-400 font-bold">
+                              HSD: {new Date(voucher.expiryDate).toLocaleDateString('vi-VN')}
+                            </span>
+                            {(() => {
+                              const diff = new Date(voucher.expiryDate) - new Date();
+                              const isExpiringSoon = diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+                              return isExpiringSoon ? (
+                                <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 ml-1.5 animate-pulse">Sắp hết hạn</span>
+                              ) : null;
+                            })()}
+                          </div>
                         )}
                       </div>
                       
@@ -180,11 +190,20 @@ export default function VouchersPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between border-t border-slate-50 pt-3">
-                      {/* Left: Usage stats */}
+                    <div className="flex items-center justify-between border-t border-slate-50 pt-3 gap-4">
+                      {/* Left: Usage stats & progress bar */}
                       {voucher.usageLimit ? (
-                        <div className="text-[10px] text-slate-400 font-bold">
-                          Đã dùng {Math.round((voucher.usedCount / voucher.usageLimit) * 100)}%
+                        <div className="flex-1">
+                          <div className="flex justify-between text-[10px] text-slate-400 font-bold mb-1">
+                            <span>Đã dùng: {voucher.usedCount || 0}/{voucher.usageLimit}</span>
+                            <span>{Math.round(((voucher.usedCount || 0) / voucher.usageLimit) * 100)}%</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-600 rounded-full"
+                              style={{ width: `${Math.round(((voucher.usedCount || 0) / voucher.usageLimit) * 100)}%` }}
+                            />
+                          </div>
                         </div>
                       ) : (
                         <div className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
@@ -192,25 +211,33 @@ export default function VouchersPage() {
                         </div>
                       )}
 
-                      {/* Right: Copy Button */}
-                      <button
-                        onClick={() => handleCopyCode(voucher.code)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black tracking-wide shadow-sm transition-all duration-200 cursor-pointer ${
-                          isCopied
-                            ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md'
-                        }`}
-                      >
-                        {isCopied ? (
-                          <>
-                            <CheckCircle size={13} /> Đã lưu
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={13} /> Lưu mã
-                          </>
-                        )}
-                      </button>
+                      {/* Right: Actions */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Link
+                          to="/"
+                          className="px-2.5 py-1.5 bg-gray-50 border border-gray-150 hover:bg-gray-100 text-gray-600 rounded-xl text-xs font-bold transition-all"
+                        >
+                          Dùng ngay
+                        </Link>
+                        <button
+                          onClick={() => handleCopyCode(voucher.code)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black tracking-wide shadow-sm transition-all duration-200 cursor-pointer ${
+                            isCopied
+                              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                              : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-md'
+                          }`}
+                        >
+                          {isCopied ? (
+                            <>
+                              <CheckCircle size={13} /> Đã lưu
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={13} /> Lưu mã
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
