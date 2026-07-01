@@ -37,6 +37,7 @@ export default function CheckoutPage() {
   const [appliedVoucher, setAppliedVoucher] = useState(null)
   const [discountAmount, setDiscountAmount] = useState(0)
   const [voucherError, setVoucherError] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState('cod')
 
   useEffect(() => {
     document.title = 'Thanh toán đơn hàng - TechMarket';
@@ -125,19 +126,39 @@ export default function CheckoutPage() {
     try {
       const payload = {
         shippingAddress: address,
-        paymentMethod: 'cod',
+        paymentMethod: paymentMethod,
         voucherCode: appliedVoucher ? appliedVoucher.code : undefined
       }
 
       const res = await axiosInstance.post('/orders', payload)
       const order = res.data.data
 
-      // Successfully ordered! Clear cart badge & navigate
+      // Successfully ordered! Clear cart badge
       await fetchCart()
-      toast.success('Đặt hàng thành công!')
-      navigate(`/order-success/${order._id}`)
+
+      if (paymentMethod === 'vnpay') {
+        const loadToast = toast.loading('Đang chuyển hướng đến cổng thanh toán VNPay...')
+        try {
+          const paymentRes = await axiosInstance.post('/payments/create-vnpay', { orderId: order._id })
+          const paymentUrl = paymentRes.data.data?.paymentUrl
+          toast.dismiss(loadToast)
+          if (paymentUrl) {
+            window.location.href = paymentUrl
+          } else {
+            toast.error('Không tạo được liên kết thanh toán!')
+            navigate(`/orders/${order._id}`)
+          }
+        } catch (paymentErr) {
+          toast.dismiss(loadToast)
+          toast.error('Có lỗi xảy ra khi tạo giao dịch thanh toán!')
+          navigate(`/orders/${order._id}`)
+        }
+      } else {
+        toast.success('Đặt hàng thành công!')
+        navigate(`/order-success/${order._id}`)
+      }
     } catch (err) {
-      setSubmitError(err.response?.data?.message || 'Đồ đặt hàng thất bại. Vui lòng kiểm tra lại giỏ hàng.')
+      setSubmitError(err.response?.data?.message || 'Đặt hàng thất bại. Vui lòng kiểm tra lại giỏ hàng.')
       toast.error('Đặt hàng thất bại!')
     } finally {
       setSubmitLoading(false)
@@ -253,8 +274,15 @@ export default function CheckoutPage() {
             <h3 className="font-bold text-gray-800 text-base">Phương thức thanh toán</h3>
             <div className="space-y-3">
               {/* COD */}
-              <label className="flex items-center gap-3 p-4 border border-indigo-600 bg-indigo-50/30 rounded-2xl cursor-pointer">
-                <input type="radio" checked readOnly className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" />
+              <label className={`flex items-center gap-3 p-4 border rounded-2xl cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-indigo-600 bg-indigo-50/30' : 'border-gray-150 bg-gray-50/50'}`}>
+                <input 
+                  type="radio" 
+                  name="paymentMethod" 
+                  value="cod"
+                  checked={paymentMethod === 'cod'} 
+                  onChange={() => setPaymentMethod('cod')} 
+                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" 
+                />
                 <div>
                   <p className="text-sm font-bold text-gray-800">Thanh toán khi nhận hàng (COD)</p>
                   <p className="text-xs text-gray-500">Thanh toán bằng tiền mặt khi shipper giao hàng.</p>
@@ -262,16 +290,23 @@ export default function CheckoutPage() {
               </label>
 
               {/* VNPay */}
-              <div className="flex items-center justify-between p-4 border border-gray-150 bg-gray-50/50 rounded-2xl opacity-60">
+              <label className={`flex items-center justify-between p-4 border rounded-2xl cursor-pointer transition-all ${paymentMethod === 'vnpay' ? 'border-indigo-600 bg-indigo-50/30' : 'border-gray-150 bg-gray-50/50'}`}>
                 <div className="flex items-center gap-3">
-                  <input type="radio" disabled className="h-4 w-4 text-gray-300 cursor-not-allowed" />
+                  <input 
+                    type="radio" 
+                    name="paymentMethod" 
+                    value="vnpay"
+                    checked={paymentMethod === 'vnpay'} 
+                    onChange={() => setPaymentMethod('vnpay')} 
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500" 
+                  />
                   <div>
-                    <p className="text-sm font-bold text-gray-600">Thanh toán qua ví VNPay</p>
-                    <p className="text-xs text-gray-400">Kết nối thẻ ngân hàng hoặc quét mã QR.</p>
+                    <p className="text-sm font-bold text-gray-805">Thanh toán qua ví VNPay</p>
+                    <p className="text-xs text-gray-500">Kết nối thẻ ngân hàng hoặc quét mã QR.</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md uppercase">Sắp có</span>
-              </div>
+                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-md uppercase">Nhanh</span>
+              </label>
 
               {/* MoMo */}
               <div className="flex items-center justify-between p-4 border border-gray-150 bg-gray-50/50 rounded-2xl opacity-60">
